@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+  web:
+    build: .
+    container_name: web
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - ./static:/static
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_HOST: postgres
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
