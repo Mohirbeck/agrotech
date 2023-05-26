@@ -222,3 +222,18 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.user.email} - {self.created_at}"
 
+
+class EmailCode(models.Model):
+    email = models.CharField(max_length=16, db_index=True)
+    ip = models.GenericIPAddressField(db_index=True)
+    code = models.CharField(max_length=10)
+    expire_at = models.DateTimeField(db_index=True)
+
+    class Meta:
+        index_together = []
+
+
+class EmailAttempt(models.Model):
+    email = models.CharField(max_length=16, db_index=True)
+    counter = models.IntegerField(default=0)
+    last_attempt_at = models.DateTimeField(db_index=True)
