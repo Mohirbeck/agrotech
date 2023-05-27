@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Address, Document, Company, Position, User, Product, ProductImage, ProductPrice, Cart, Order, UnitOfMeasure
+from .models import Address, Document, Company, Position, User, Product, ProductImage, ProductPrice, Cart, Order, UnitOfMeasure, Category, Article
 
 
 class ProductImageInline(admin.TabularInline):
@@ -62,5 +62,18 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(UnitOfMeasure)
 class UnitOfMeasureAdmin(admin.ModelAdmin):
     list_display = ['id', 'name']
+    list_display_links = ['id', 'name']
+    search_fields = ['name']
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name']
+    list_display_links = ['id', 'name']
+    search_fields = ['name']
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'created_at', 'updated_at']
     list_display_links = ['id', 'name']
     search_fields = ['name']

@@ -189,11 +189,11 @@ class CartProduct(models.Model):
     
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="carts")
-    product = models.ForeignKey(Product, related_name="carts", on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name="carts", on_delete=models.CASCADE, null=True, blank=True)
     is_archived = models.BooleanField(default=False)
     quantity = models.IntegerField(default=1)
     comment = models.TextField(null=True, blank=True)
-    cart_product = models.ForeignKey(CartProduct, on_delete=models.CASCADE, related_name="carts")
+    cart_product = models.ForeignKey(CartProduct, on_delete=models.CASCADE, related_name="carts", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -213,6 +213,7 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
     carts = models.ManyToManyField(Cart, related_name="orders")
+    address = models.ForeignKey(Address, on_delete=models.CASCADE, related_name="orders")
     status = models.CharField(max_length=50, choices=status_choices, default="1")
     payment_status = models.CharField(max_length=50, choices=payment_status_choices, default="1")
     comment = models.TextField(null=True, blank=True)
