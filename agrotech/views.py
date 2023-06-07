@@ -29,15 +29,47 @@ from .serializers import (
     CompanySerializer,
     CartSerializer,
     CategorySerializer,
+    EmailSerializer,
+    ConfirmEmailSerializer
 )
 from .filters import (
     CartFilter,
     ProductFilter,
     OrderFilter,
 )
-from rest_framework import generics
+from .utils import send_email_code, validate_email_code
+from rest_framework.response import Response
+from rest_framework import generics, views
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_yasg.utils import swagger_auto_schema
+
+
+class SendEmailView(views.APIView):
+    @swagger_auto_schema(
+        request_body=EmailSerializer(),
+    )
+    def post(self, request):
+        serializer = EmailSerializer(data=request.data)
+        if serializer.is_valid():
+            send_email_code(request, serializer.data['email'])
+            return Response(data='Code sent! check your email')
+        return Response(data=serializer.errors)
+
+
+class ConfirmEmailView(views.APIView):
+    @swagger_auto_schema(
+        request_body=ConfirmEmailSerializer(),
+    )
+    def post(self, request):
+        serializer = ConfirmEmailSerializer(data=request.data)
+        if serializer.is_valid():
+            if validate_email_code(serializer.data['email'], serializer.data['code']):
+                return Response(data="Account is active!")
+            else:
+                return Response(data='Code is wrong')
+        return Response(data=serializer.errors)
+
 
 
 class MyObtainTokenPairView(TokenObtainPairView):

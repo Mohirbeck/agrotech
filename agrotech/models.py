@@ -34,13 +34,16 @@ class Document(models.Model):
             return "Other"
         else:
             return "Other"
-    
+
+
+role_choices = (
+    ("1", "Farmer"),
+    ("2", "HoReCa"),
+    ("3", "Manufacturer"),
+)
+
 class Company(models.Model):
-    role_choices = (
-        ("1", "Farmer"),
-        ("2", "HoReCa"),
-        ("3", "Manufacturer"),
-    )
+
     name = models.CharField(max_length=50)
     address = models.ManyToManyField(Address)
     phone = models.CharField(max_length=50)
@@ -225,7 +228,7 @@ class Order(models.Model):
 
 
 class EmailCode(models.Model):
-    email = models.CharField(max_length=16, db_index=True)
+    email = models.CharField(max_length=50, db_index=True)
     ip = models.GenericIPAddressField(db_index=True)
     code = models.CharField(max_length=10)
     expire_at = models.DateTimeField(db_index=True)
@@ -235,6 +238,17 @@ class EmailCode(models.Model):
 
 
 class EmailAttempt(models.Model):
-    email = models.CharField(max_length=16, db_index=True)
+    email = models.CharField(max_length=50, db_index=True)
     counter = models.IntegerField(default=0)
     last_attempt_at = models.DateTimeField(db_index=True)
+
+
+class Application(models.Model):
+    name_company = models.CharField(max_length=255)
+    type_company = models.CharField(max_length=50, choices=role_choices, default="1")
+    contact = models.CharField(max_length=25)
+    inn = models.CharField(max_length=20)
+    email_company = models.EmailField(_("email address"), unique=True)
+    owner_name = models.CharField(max_length=50)
+    owner_email = models.EmailField(_("email address"), unique=True)
+    owner_phone = models.CharField(max_length=50)

@@ -64,14 +64,16 @@ def validate_email_code(email, code):
 
 
 def send_email(email, text):
-
+    print(type(text))
+    print(type(settings.EMAIL_HOST_USER))
+    print(type(email))
 
     try:
         send_mail(
             'Code',
             text,
             settings.EMAIL_HOST_USER,
-            [email],
+            [email], fail_silently=False
         )
         print('email sending')
     except Exception as e:

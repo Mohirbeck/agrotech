@@ -13,4 +13,7 @@ urlpatterns = [
     path("category/<int:pk>/", views.CategoryDetail.as_view(), name="category_detail"),
     path("order/", views.OrderView.as_view(), name="order"),
     path("order/<int:pk>/", views.OrderDetail.as_view(), name="order_detail"),
+    # path("email/send/", views.SendEmailView.as_view()),
+    # path("email/confirm/", views.ConfirmEmailView.as_view()),
+    
 ]

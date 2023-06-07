@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Address, Document, Company, Position, User, Product, ProductImage, ProductPrice, Cart, Order, UnitOfMeasure, Category, Article
+from .models import Address, Document, Company, Position, User, Product, ProductImage, ProductPrice, Cart, Order, UnitOfMeasure, Category, Article, Application
 
 
 class ProductImageInline(admin.TabularInline):
@@ -77,3 +77,19 @@ class ArticleAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'created_at', 'updated_at']
     list_display_links = ['id', 'name']
     search_fields = ['name']
+
+
+@admin.register(Application)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name_company', 'owner_name', 'contact']
+    list_display_links = ['id', 'name_company']
+    search_fields = ['name_company']
+
+
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ['id', 'product', 'image']
+    list_display_links = ['id', 'product']
+    # search_fields = ['name_company']s
+
+    

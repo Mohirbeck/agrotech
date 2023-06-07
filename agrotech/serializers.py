@@ -23,7 +23,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 class MyTokenObtainSerializer(TokenObtainSerializer):
     @classmethod
     def get_token(cls, user):
-        return RefreshToken.for_user(user)
+        if user.is_active:
+            return RefreshToken.for_user(user)
+        else: 
+            return {'status': 'fail', 'data': 'Current account has not email confirmation'}
 
     def validate(self, attrs):
         data = super().validate(attrs)
@@ -73,6 +76,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             email=validated_data["email"],
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
+            is_active=False
         )
 
         user.set_password(validated_data["password"])
@@ -176,3 +180,12 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = "__all__"
+
+
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ConfirmEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(min_length=6, max_length=6)
