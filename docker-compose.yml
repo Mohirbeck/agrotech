@@ -18,6 +18,7 @@ services:
     volumes:
       - .:/app
       - ./static:/static
+      - ./media:/media
     ports:
       - "8000:8000"
     expose:
