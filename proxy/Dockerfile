@@ -10,8 +10,6 @@ ENV SERVER_NAME=127.0.0.1
 
 USER root
 RUN chmod +x /run.sh
-COPY ./media /app/media
-COPY ./static /app/static
 EXPOSE 80
 
 CMD ["/run.sh"]
