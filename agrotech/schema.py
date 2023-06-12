@@ -1,7 +1,8 @@
 import graphene
+from django.forms import ModelForm
 from graphene_django import DjangoObjectType
-from graphene_django.rest_framework.mutation import SerializerMutation
-from .serializers import CompanySerializer, UserSerializer
+from graphene_django.rest_framework.mutation import SerializerMutation, DjangoModelFormMutation
+from .serializers import CompanySerializer, UserSerializer, CartSerializer, ProductSerializer
 from .models import (
     Order,
     User,
@@ -20,6 +21,44 @@ from .models import (
 )
 import graphql_jwt
 
+class PetType(DjangoObjectType):
+    class Meta:
+        model = Product
+
+class PetForm(ModelForm):
+    # pet = Field(PetType)
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+class PetMutation(DjangoModelFormMutation):
+    pet = graphene.Field(PetType)
+
+    class Meta:
+        form_class = PetForm
+
+class ProductModelMutation(SerializerMutation):
+    class Meta:
+        serializer_class = ProductSerializer
+        model_operations = ['create', 'update']
+
+class CartModelMutation(SerializerMutation):
+    class Meta:
+        serializer_class = CartSerializer
+        model_operations = ['create', 'update']
+
+    @classmethod
+    def get_serializer_kwargs(cls, root, info, **input):
+        instance = Cart.objects.filter(
+            user=info.context.user
+        ).first()
+        if instance:
+            return {'instance': instance, 'data': input, 'partial': True}
+
+        else:
+            raise 'http.Http404'
+
+        return {'data': input, 'partial': True}
 
 class UserModelMutation(SerializerMutation):
     class Meta:
@@ -60,18 +99,17 @@ class CompantModelMutation(SerializerMutation):
 
         return {'data': input, 'partial': True}
 
+
 class Mutation(graphene.ObjectType):
-    # def process_response(self, request, response):
-    #     if (self.request_has_cookie_mutation(request)):
-    #         new_cookie = 'salut bratan'
-    #         response.set_cookie('wanted_cookie', new_cookie)
-    #     return response
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
 
     update_company = CompantModelMutation.Field()
     update_user = UserModelMutation.Field()
+    create_cart = CartModelMutation.Field()
+    create_product = ProductModelMutation.Field()
+    create_pro_2 = PetMutation.Field()
 
 class ProductImageNode(DjangoObjectType):
 

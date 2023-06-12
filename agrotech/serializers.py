@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from .models import (
     User,
-#     Product,
+    Product,
 #     Order,
-#     Cart,
+    Cart,
     Address,
 #     UnitOfMeasure,
 #     ProductImage,
@@ -139,20 +139,20 @@ class CompanySerializer(serializers.ModelSerializer):
         
 
 
-# class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(serializers.ModelSerializer):
 
-#     def to_representation(self, instance: Product):
-#         representation = super().to_representation(instance)
-#         representation['images'] = ProductImageSerializer(instance.images.all(), many=True, context=self.context).data
-#         representation['prices'] = ProductPriceSerializer(instance.prices.all(), many=True, context=self.context).data
-#         representation['unit_of_measure'] = UnitOfMeasureSerializer(instance.unit_of_measure, context=self.context).data
-#         representation['category'] = CategorySerializer(instance.category, context=self.context).data
-#         representation['article'] = ArticleSerializer(instance.article, context=self.context).data
-#         return representation
+    # def to_representation(self, instance: Product):
+    #     representation = super().to_representation(instance)
+    #     representation['images'] = ProductImageSerializer(instance.images.all(), many=True, context=self.context).data
+    #     representation['prices'] = ProductPriceSerializer(instance.prices.all(), many=True, context=self.context).data
+    #     representation['unit_of_measure'] = UnitOfMeasureSerializer(instance.unit_of_measure, context=self.context).data
+    #     representation['category'] = CategorySerializer(instance.category, context=self.context).data
+    #     representation['article'] = ArticleSerializer(instance.article, context=self.context).data
+    #     return representation
 
-#     class Meta:
-#         model = Product
-#         fields = "__all__"
+    class Meta:
+        model = Product
+        fields = "__all__"
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -170,15 +170,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
-# class CartSerializer(serializers.ModelSerializer):
-#     def to_representation(self, instance: Cart):
-#         representation = super().to_representation(instance)
-#         representation['product'] = ProductSerializer(instance.product, context=self.context).data
-#         return representation
+class CartSerializer(serializers.ModelSerializer):
+    # def to_representation(self, instance: Cart):
+    #     representation = super().to_representation(instance)
+    #     representation['product'] = ProductSerializer(instance.product, context=self.context).data
+    #     return representation
         
-#     class Meta:
-#         model = Cart
-#         fields = "__all__"
+    class Meta:
+        model = Cart
+        fields = "__all__"
 
 # class OrderSerializer(serializers.ModelSerializer):
 #     def to_representation(self, instance: Order):
