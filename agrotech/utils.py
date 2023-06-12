@@ -70,7 +70,7 @@ def send_email(email, text):
 
     try:
         send_mail(
-            'Code',
+            'Application accepted',
             text,
             settings.EMAIL_HOST_USER,
             [email], fail_silently=False

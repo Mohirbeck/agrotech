@@ -79,9 +79,12 @@ class ArticleAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
+from django.utils.html import format_html
+from django.urls import reverse
+
 @admin.register(Application)
-class ArticleAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name_company', 'owner_name', 'contact']
+class ArticleAdmin(admin.ModelAdmin):    
+    list_display = ['id', 'name_company', 'owner_name', 'contact', 'status', 'approve']
     list_display_links = ['id', 'name_company']
     search_fields = ['name_company']
 
@@ -92,4 +95,8 @@ class ProductImageAdmin(admin.ModelAdmin):
     list_display_links = ['id', 'product']
     # search_fields = ['name_company']s
 
+# from django.apps import apps
+# app = apps.get_app_config('graphql_auth')
+# for model_name, model in app.models.items():
+#     admin.site.register(model)
     

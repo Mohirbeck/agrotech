@@ -1,5 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
+from graphene_django.rest_framework.mutation import SerializerMutation
+from .serializers import CompanySerializer, UserSerializer
 from .models import (
     Order,
     User,
@@ -16,6 +18,60 @@ from .models import (
     Category,
     Application
 )
+import graphql_jwt
+
+
+class UserModelMutation(SerializerMutation):
+    class Meta:
+        serializer_class = UserSerializer
+        model_operations = ['update']
+
+    @classmethod
+    def get_serializer_kwargs(cls, root, info, **input):
+        instance = User.objects.get(
+            id=info.context.user.id
+        )
+        if instance:
+            return {'instance': instance, 'data': input, 'partial': True}
+
+        else:
+            raise 'http.Http404'
+
+        return {'data': input, 'partial': True}
+
+class CompantModelMutation(SerializerMutation):
+    class Meta:
+        serializer_class = CompanySerializer
+        model_operations = ['update']
+
+    @classmethod
+    def get_serializer_kwargs(cls, root, info, **input):
+        # print(info.context.user.id)
+        u = User.objects.get(id=info.context.user.id)
+        print(u.company)
+        instance = Company.objects.get(
+            id=info.context.user.company.id
+        )
+        if instance:
+            return {'instance': instance, 'data': input, 'partial': True}
+
+        else:
+            raise 'http.Http404'
+
+        return {'data': input, 'partial': True}
+
+class Mutation(graphene.ObjectType):
+    # def process_response(self, request, response):
+    #     if (self.request_has_cookie_mutation(request)):
+    #         new_cookie = 'salut bratan'
+    #         response.set_cookie('wanted_cookie', new_cookie)
+    #     return response
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+
+    update_company = CompantModelMutation.Field()
+    update_user = UserModelMutation.Field()
 
 class ProductImageNode(DjangoObjectType):
 
@@ -74,8 +130,19 @@ class Query(graphene.ObjectType):
     category_list = graphene.List(CategoryNode)
     category_by_id = graphene.Field(CategoryNode, id=graphene.String())
 
+    company_list = graphene.List(CompanyNode)
+
+    def resolve_company_list(root, info):
+        return Company.objects.all()
     def resolve_category_list(root, info):
-        return Category.objects.all()
+        print('Rabotayet')
+        print(root)
+        print(info)
+        print(info.context.user)
+        if info.context.user.is_authenticated:
+            print('ISHLADI PIDARAS')
+            return Category.objects.none()
+        return Category.objects.all()   
     def resolve_category_by_id(root, info, id):
         return Category.objects.get(pk=id) 
    
@@ -92,4 +159,4 @@ class Query(graphene.ObjectType):
     def resolve_application_by_id(root, info, id):
         return Application.objects.get(pk=id)
 
-schema = graphene.Schema(query=Query)
+schema = graphene.Schema(query=Query, mutation=Mutation)    
