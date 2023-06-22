@@ -1,8 +1,8 @@
 import graphene
-from django.forms import ModelForm
 from graphene_django import DjangoObjectType
-from graphene_django.rest_framework.mutation import SerializerMutation, DjangoModelFormMutation
+from graphene_django.rest_framework.mutation import SerializerMutation
 from .serializers import CompanySerializer, UserSerializer, CartSerializer, ProductSerializer
+
 from .models import (
     Order,
     User,
@@ -21,44 +21,36 @@ from .models import (
 )
 import graphql_jwt
 
-class PetType(DjangoObjectType):
-    class Meta:
-        model = Product
 
-class PetForm(ModelForm):
-    # pet = Field(PetType)
-    class Meta:
-        model = Product
-        fields = '__all__'
 
-class PetMutation(DjangoModelFormMutation):
-    pet = graphene.Field(PetType)
+class DeleteCartMutation(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID()
+    status = graphene.String()
+    @classmethod
+    def mutate(cls, root, info,  id):
+        cart = Cart.objects.get(pk=id)
+        cart.delete()
+        return DeleteCartMutation(status='success')
 
-    class Meta:
-        form_class = PetForm
-
-class ProductModelMutation(SerializerMutation):
-    class Meta:
-        serializer_class = ProductSerializer
-        model_operations = ['create', 'update']
 
 class CartModelMutation(SerializerMutation):
     class Meta:
         serializer_class = CartSerializer
-        model_operations = ['create', 'update']
-
+        model_operations = ['create']
+    
     @classmethod
     def get_serializer_kwargs(cls, root, info, **input):
-        instance = Cart.objects.filter(
-            user=info.context.user
-        ).first()
+        instance = Cart(user=info.context.user)
+        # input['user'] = info.context.user
         if instance:
             return {'instance': instance, 'data': input, 'partial': True}
 
         else:
             raise 'http.Http404'
-
+        print(input, cls, info)
         return {'data': input, 'partial': True}
+       
 
 class UserModelMutation(SerializerMutation):
     class Meta:
@@ -85,9 +77,7 @@ class CompantModelMutation(SerializerMutation):
 
     @classmethod
     def get_serializer_kwargs(cls, root, info, **input):
-        # print(info.context.user.id)
-        u = User.objects.get(id=info.context.user.id)
-        print(u.company)
+        print(input['role'][0])
         instance = Company.objects.get(
             id=info.context.user.company.id
         )
@@ -108,48 +98,55 @@ class Mutation(graphene.ObjectType):
     update_company = CompantModelMutation.Field()
     update_user = UserModelMutation.Field()
     create_cart = CartModelMutation.Field()
-    create_product = ProductModelMutation.Field()
-    create_pro_2 = PetMutation.Field()
+    delete_cart = DeleteCartMutation.Field()
+   
 
-class ProductImageNode(DjangoObjectType):
+class CartType(DjangoObjectType):
+    cart_status = graphene.String()
+    class Meta:
+        model = Cart
+        fields = '__all__'
+
+
+class ProductImageType(DjangoObjectType):
 
     class Meta:
         model = ProductImage
         fields = ('id', 'image', 'created_at', 'updated_at')
 
-class CompanyNode(DjangoObjectType):
-
+class CompanyType(DjangoObjectType):
+    role = graphene.Int()
     class Meta:
         model = Company
         fields = '__all__'
 
-class UnitOfMeasureNode(DjangoObjectType):
+class UnitOfMeasureType(DjangoObjectType):
 
     class Meta:
         model = UnitOfMeasure
         fields = '__all__'
 
-class ArticleNode(DjangoObjectType):
+class ArticleType(DjangoObjectType):
 
     class Meta:
         model = Article
         fields = '__all__'
 
-class CategoryNode(DjangoObjectType):
+class CategoryType(DjangoObjectType):
 
     class Meta:
         model = Category
         fields = '__all__'
 
 
-class ProductNode(DjangoObjectType):
+class ProductType(DjangoObjectType):
 
     class Meta:
         model = Product
         fields = '__all__'
 
 
-class ApplicationNode(DjangoObjectType):
+class ApplicationType(DjangoObjectType):
 
     class Meta:
         model = Application
@@ -158,18 +155,25 @@ class ApplicationNode(DjangoObjectType):
 
 class Query(graphene.ObjectType):
 
-    application_list = graphene.List(ApplicationNode)
-    application_by_id = graphene.Field(ApplicationNode, id=graphene.String())
+    application_list = graphene.List(ApplicationType)
+    application_by_id = graphene.Field(ApplicationType, id=graphene.String())
 
-    product_list = graphene.List(ProductNode)
-    product_by_id = graphene.Field(ProductNode, id=graphene.String())
-    product_image_list = graphene.List(ProductImageNode, product_id=graphene.String())
+    product_list = graphene.List(ProductType)
+    product_by_id = graphene.Field(ProductType, id=graphene.String())
+    product_image_list = graphene.List(ProductImageType, product_id=graphene.String())
     
-    category_list = graphene.List(CategoryNode)
-    category_by_id = graphene.Field(CategoryNode, id=graphene.String())
+    category_list = graphene.List(CategoryType)
+    category_by_id = graphene.Field(CategoryType, id=graphene.String())
 
-    company_list = graphene.List(CompanyNode)
+    company_list = graphene.List(CompanyType)
 
+    my_carts = graphene.List(CartType)
+
+    def resolve_my_carts(root, info):
+        if not info.context.user.is_authenticated:
+            print('ISHLADI PIDARAS')
+            return Cart.objects.none()
+        return Cart.objects.filter(user=info.context.user) 
     def resolve_company_list(root, info):
         return Company.objects.all()
     def resolve_category_list(root, info):

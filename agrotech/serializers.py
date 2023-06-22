@@ -125,13 +125,14 @@ class AddressSerializer(serializers.ModelSerializer):
 #         fields = "__all__"
 
 class CompanySerializer(serializers.ModelSerializer):
-    def to_representation(self, instance: Company):
-        representation = super().to_representation(instance)
-        representation['address'] = AddressSerializer(instance.address, context=self.context, many=True).data
-        return representation
+    role = serializers.CharField()
+    # def to_representation(self, instance: Company):
+    #     representation = super().to_representation(instance)
+    #     representation['address'] = AddressSerializer(instance.address, context=self.context, many=True).data
+    #     return representation
     class Meta:
         model = Company
-        fields = "__all__"
+        fields = ('name', 'phone', 'role')
         extra_kwargs = {
             "name": {"required": False},
             "phone": {"required": False},
@@ -175,10 +176,13 @@ class CartSerializer(serializers.ModelSerializer):
     #     representation = super().to_representation(instance)
     #     representation['product'] = ProductSerializer(instance.product, context=self.context).data
     #     return representation
-        
+    cart_status = serializers.CharField()
     class Meta:
         model = Cart
         fields = "__all__"
+        extra_kwargs = {
+            "user": {"required": False},
+        }
 
 # class OrderSerializer(serializers.ModelSerializer):
 #     def to_representation(self, instance: Order):
