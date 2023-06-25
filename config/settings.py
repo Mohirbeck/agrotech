@@ -77,6 +77,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3001",
 ]
 
+CSRF_TRUSTED_ORIGINS = ['https://api.nt-technosoft.uz']
+
 CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = "config.urls"
