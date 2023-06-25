@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     User,
     Product,
-#     Order,
+    Order,
     Cart,
     Address,
 #     UnitOfMeasure,
@@ -108,6 +108,10 @@ class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = "__all__"
+        extra_kwargs = {
+            "company": {"required": False},
+        }
+
 
 # class ArticleSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -184,15 +188,19 @@ class CartSerializer(serializers.ModelSerializer):
             "user": {"required": False},
         }
 
-# class OrderSerializer(serializers.ModelSerializer):
-#     def to_representation(self, instance: Order):
-#         representation = super().to_representation(instance)
-#         representation['carts'] = CartSerializer(instance.carts, context=self.context, many=True).data
-#         representation['address'] = AddressSerializer(instance.address, context=self.context).data
-#         return representation
-#     class Meta:
-#         model = Order
-#         fields = "__all__"
+class OrderSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance: Order):
+        representation = super().to_representation(instance)
+        representation['carts'] = CartSerializer(instance.carts, context=self.context, many=True).data
+        representation['address'] = AddressSerializer(instance.address, context=self.context).data
+        return representation
+    class Meta:
+        model = Order
+        fields = "__all__"
+        extra_kwargs = {
+            "user": {"required": False},
+            "total_price":{"required": False},
+        }
 
 
 # class EmailSerializer(serializers.Serializer):

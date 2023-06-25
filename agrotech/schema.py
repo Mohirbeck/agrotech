@@ -1,7 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from graphene_django.rest_framework.mutation import SerializerMutation
-from .serializers import CompanySerializer, UserSerializer, CartSerializer, ProductSerializer
+from .serializers import CompanySerializer, UserSerializer, CartSerializer, ProductSerializer, AddressSerializer,OrderSerializer
 
 from .models import (
     Order,
@@ -16,12 +16,34 @@ from .models import (
     Document,
     Company,
     Cart,
+    CartProduct,
     Category,
     Application
 )
 import graphql_jwt
 
 
+class OrderCreateMutation(SerializerMutation):
+    class Meta:
+        serializer_class = OrderSerializer
+        model_operations = ['create']
+
+    @classmethod
+    def get_serializer_kwargs(cls, root, info, **input):
+        instance = Order(user=info.context.user)
+        user_active_carts = Cart.objects.filter(user=info.context.user, cart_status=Cart.Status.ACTIVE)
+        for active_cart in user_active_carts:
+            product_cart = CartProduct.objects.create( )
+        # input['user'] = info.context.user
+        if instance:
+            return {'instance': instance, 'data': input, 'partial': True}
+
+        else:
+            raise 'http.Http404'
+        print(input, cls, info)
+        return {'data': input, 'partial': True}
+
+    
 
 class DeleteCartMutation(graphene.Mutation):
     class Arguments:
@@ -31,6 +53,19 @@ class DeleteCartMutation(graphene.Mutation):
     def mutate(cls, root, info,  id):
         cart = Cart.objects.get(pk=id)
         cart.delete()
+        return DeleteCartMutation(status='success')
+    
+
+class UpdateCartMutation(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID()
+        quantity = graphene.ID()
+    status = graphene.String()
+    @classmethod
+    def mutate(cls, root, info,  id, quantity):
+        cart = Cart.objects.get(pk=id)
+        cart.quantity = quantity
+        cart.save()
         return DeleteCartMutation(status='success')
 
 
@@ -51,6 +86,53 @@ class CartModelMutation(SerializerMutation):
         print(input, cls, info)
         return {'data': input, 'partial': True}
        
+
+class AdressModelCreateMutation(SerializerMutation):
+    class Meta:
+        serializer_class = AddressSerializer
+        model_operations = ['create']
+    
+    @classmethod
+    def get_serializer_kwargs(cls, root, info, **input):
+        instance = Address(company=info.context.user.company)
+        # input['user'] = info.context.user
+        if instance:
+            return {'instance': instance, 'data': input, 'partial': True}
+
+        else:
+            raise 'http.Http404'
+        print(input, cls, info)
+        return {'data': input, 'partial': True}
+    
+
+class AdressModelUpdateMutation(SerializerMutation):
+    class Meta:
+        serializer_class = AddressSerializer
+        model_operations = ['update']
+        lookup_field = 'id'
+
+class AdressModelDeleteMutation(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID()
+    status = graphene.String()
+    @classmethod
+    def mutate(cls, root, info,  id):
+        cart = Address.objects.get(pk=id)
+        cart.delete()
+        return DeleteCartMutation(status='success')
+    
+    # @classmethod
+    # def get_serializer_kwargs(cls, root, info, **input):
+    #     instance = Address(company=info.context.user.company)
+    #     # input['user'] = info.context.user
+    #     if instance:
+    #         return {'instance': instance, 'data': input, 'partial': True}
+
+    #     else:
+    #         raise 'http.Http404'
+    #     print(input, cls, info)
+    #     return {'data': input, 'partial': True}
+
 
 class UserModelMutation(SerializerMutation):
     class Meta:
@@ -97,9 +179,36 @@ class Mutation(graphene.ObjectType):
 
     update_company = CompantModelMutation.Field()
     update_user = UserModelMutation.Field()
+
     create_cart = CartModelMutation.Field()
     delete_cart = DeleteCartMutation.Field()
-   
+    update_cart = UpdateCartMutation.Field()
+
+    create_address = AdressModelCreateMutation.Field()
+    update_address = AdressModelUpdateMutation.Field()
+    delete_address = AdressModelDeleteMutation.Field()
+
+    create_order = OrderCreateMutation.Field()
+
+
+class OrderType(DjangoObjectType):
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+class CartProductType(DjangoObjectType):
+
+    class Meta:
+        model = CartProduct
+        fields = '__all__'
+
+class AddressType(DjangoObjectType):
+
+    class Meta:
+        model = Address
+        fields = '__all__'
 
 class CartType(DjangoObjectType):
     cart_status = graphene.String()
@@ -169,20 +278,35 @@ class Query(graphene.ObjectType):
 
     my_carts = graphene.List(CartType)
 
+    address_list = graphene.List(AddressType) 
+
+    my_orders = graphene.List(OrderType)
+
+    cart_product_list = graphene.List(CartProductType, order_id=graphene.String())
+
+    def resolve_my_orders(root, info):
+        if not info.context.user.is_authenticated:
+            return Order.objects.none()
+        return Order.objects.filter(user=info.context.user) 
+    
+    def resolve_cart_product_list(root, info, order_id):
+        if not info.context.user.is_authenticated:
+            return CartProduct.objects.none()
+        return CartProduct.objects.filter(ordeer__id=order_id) 
+
+    def resolve_address_list(root, info):
+        if not info.context.user.is_authenticated:
+            return Address.objects.none()
+        return Address.objects.filter(company=info.context.user.company) 
+        
     def resolve_my_carts(root, info):
         if not info.context.user.is_authenticated:
-            print('ISHLADI PIDARAS')
             return Cart.objects.none()
         return Cart.objects.filter(user=info.context.user) 
     def resolve_company_list(root, info):
         return Company.objects.all()
     def resolve_category_list(root, info):
-        print('Rabotayet')
-        print(root)
-        print(info)
-        print(info.context.user)
         if info.context.user.is_authenticated:
-            print('ISHLADI PIDARAS')
             return Category.objects.none()
         return Category.objects.all()   
     def resolve_category_by_id(root, info, id):
