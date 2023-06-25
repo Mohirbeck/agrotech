@@ -218,12 +218,18 @@ class CartType(DjangoObjectType):
 
 
 class ProductImageType(DjangoObjectType):
+    
+    def resolve_image(self, info, **kwargs):
+        return info.context.build_absolute_uri(self.image).replace('graphql', 'media')
 
     class Meta:
         model = ProductImage
         fields = ('id', 'image', 'created_at', 'updated_at')
 
 class CompanyType(DjangoObjectType):
+    def resolve_logo(self, info, **kwargs):
+        return info.context.build_absolute_uri(self.logo).replace('graphql', 'media')
+    
     role = graphene.Int()
     class Meta:
         model = Company
@@ -242,6 +248,10 @@ class ArticleType(DjangoObjectType):
         fields = '__all__'
 
 class CategoryType(DjangoObjectType):
+
+    def resolve_image(self, info, **kwargs):
+        return info.context.build_absolute_uri(self.image).replace('graphql', 'media')
+
 
     class Meta:
         model = Category
@@ -306,9 +316,9 @@ class Query(graphene.ObjectType):
     def resolve_company_list(root, info):
         return Company.objects.all()
     def resolve_category_list(root, info):
-        if info.context.user.is_authenticated:
-            return Category.objects.none()
-        return Category.objects.all()   
+        # if info.context.user.is_authenticated:
+        #     return Category.objects.none()
+        return Category.objects.all()
     def resolve_category_by_id(root, info, id):
         return Category.objects.get(pk=id) 
    

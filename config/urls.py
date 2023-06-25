@@ -7,6 +7,8 @@ from drf_yasg import openapi
 from agrotech.views import  MyObtainTokenPairView
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.conf.urls.static import static
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -27,3 +29,6 @@ urlpatterns = [
 
     path('', include('agrotech.urls'))
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

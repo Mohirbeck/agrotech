@@ -130,6 +130,10 @@ class Category(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def get_full_url(self):
+        return 'https://nt-techonosoft.uz' + self.image.url
+
 
     def __str__(self):
         return self.name
