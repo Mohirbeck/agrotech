@@ -66,10 +66,13 @@ class Command(BaseCommand):
         driver.get(url)
         print(url)
         driver.add_cookie({"name": "lang", "value": "ru"})
+        print('cookie')
         time.sleep(2)
         driver.get(url)
+        print('url')
         time.sleep(5)
         see_more_buttons = driver.find_elements(By.CLASS_NAME, "toggle-link")
+        print('buttons')
         for button in see_more_buttons:
             driver.execute_script("arguments[0].click();", button)
             time.sleep(5)
