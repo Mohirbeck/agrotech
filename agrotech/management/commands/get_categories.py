@@ -72,9 +72,10 @@ class Command(BaseCommand):
         print('url')
         time.sleep(5)
         see_more_buttons = driver.find_elements(By.CLASS_NAME, "toggle-link")
-        print('buttons')
+        print(see_more_buttons)
         for button in see_more_buttons:
             driver.execute_script("arguments[0].click();", button)
+            print('execute')
             time.sleep(5)
         cats = driver.find_elements(By.CLASS_NAME, "category-list-box")
         for cat in cats:
