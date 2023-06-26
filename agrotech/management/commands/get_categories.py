@@ -64,11 +64,13 @@ class Command(BaseCommand):
         url = "https://lebazar.uz/store/korzinka-uz-7/beruniy-115/categories"
         driver = webdriver.Chrome(options=set_chrome_options())
         driver.get(url)
+        driver.save_screenshot('1.png')
         print(url)
         driver.add_cookie({"name": "lang", "value": "ru"})
         print('cookie')
         time.sleep(2)
         driver.get(url)
+        driver.save_screenshot('2.png')
         print('url')
         time.sleep(5)
         see_more_buttons = driver.find_elements(By.CLASS_NAME, "toggle-link")
