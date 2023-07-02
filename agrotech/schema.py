@@ -2,7 +2,9 @@ import graphene
 from graphene_django import DjangoObjectType
 from graphene_django.rest_framework.mutation import SerializerMutation
 from .serializers import CompanySerializer, UserSerializer, CartSerializer, ProductSerializer, AddressSerializer,OrderSerializer
+from django.forms.models import model_to_dict
 
+# assuming obj is your model instance
 from .models import (
     Order,
     User,
@@ -21,29 +23,52 @@ from .models import (
     Application
 )
 import graphql_jwt
+import json
 
 
-class OrderCreateMutation(SerializerMutation):
+class OrderType(DjangoObjectType):
+
     class Meta:
-        serializer_class = OrderSerializer
-        model_operations = ['create']
+        model = Order
+        fields = '__all__'
 
+
+class OrderCreateMutation(graphene.Mutation):
+    class Arguments:
+        address_id = graphene.ID()
+    order = graphene.Field(OrderType)
     @classmethod
-    def get_serializer_kwargs(cls, root, info, **input):
-        instance = Order(user=info.context.user)
-        user_active_carts = Cart.objects.filter(user=info.context.user, cart_status=Cart.Status.ACTIVE)
-        for active_cart in user_active_carts:
-            product_cart = CartProduct.objects.create( )
-        # input['user'] = info.context.user
-        if instance:
-            return {'instance': instance, 'data': input, 'partial': True}
-
+    def mutate(cls, root, info,  address_id):
+        if not info.context.user.is_authenticated:
+            return DeleteCartMutation(order=None)
         else:
-            raise 'http.Http404'
-        print(input, cls, info)
-        return {'data': input, 'partial': True}
+            address = Address.objects.get(pk=address_id)
+            order = Order.objects.create(user=info.context.user, address=address)
+            user_active_carts = Cart.objects.filter(user=info.context.user, cart_status=Cart.Status.ACTIVE)
+            total_cost = 0
+            for active_cart in user_active_carts:
+                obj = ProductPrice.objects.get(product=active_cart.product)
+                total_cost += obj.price
+                dict_obj = model_to_dict(obj)
+                serialized_json = json.dumps(dict_obj)
+                
+                CartProduct.objects.create(
+                    order=order, 
+                    name=active_cart.product.name,
+                    quantity=active_cart.quantity,
+                    unit_of_measure=active_cart.product.unit_of_measure,
+                    article=active_cart.product.article,
+                    features=active_cart.product.features,
+                    stock=active_cart.product.stock,
+                    price=serialized_json
 
-    
+                )
+                active_cart.cart_status = Cart.Status.ARCHIVED
+                active_cart.save()
+            order.total_price = total_cost
+            order.save()
+            return DeleteCartMutation(order=order)    
+
 
 class DeleteCartMutation(graphene.Mutation):
     class Arguments:
@@ -191,11 +216,7 @@ class Mutation(graphene.ObjectType):
     create_order = OrderCreateMutation.Field()
 
 
-class OrderType(DjangoObjectType):
 
-    class Meta:
-        model = Order
-        fields = '__all__'
 
 
 class CartProductType(DjangoObjectType):
@@ -281,7 +302,7 @@ class Query(graphene.ObjectType):
     product_by_id = graphene.Field(ProductType, id=graphene.String())
     product_image_list = graphene.List(ProductImageType, product_id=graphene.String())
     
-    category_list = graphene.List(CategoryType)
+    category_list = graphene.List(CategoryType, layer=graphene.Int())
     category_by_id = graphene.Field(CategoryType, id=graphene.String())
 
     company_list = graphene.List(CompanyType)
@@ -315,10 +336,10 @@ class Query(graphene.ObjectType):
         return Cart.objects.filter(user=info.context.user) 
     def resolve_company_list(root, info):
         return Company.objects.all()
-    def resolve_category_list(root, info):
+    def resolve_category_list(root, info, layer):
         # if info.context.user.is_authenticated:
         #     return Category.objects.none()
-        return Category.objects.all()
+        return Category.objects.filter(layer=layer)
     def resolve_category_by_id(root, info, id):
         return Category.objects.get(pk=id) 
    

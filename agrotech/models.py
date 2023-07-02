@@ -204,7 +204,7 @@ class ProductPrice(models.Model):
 class CartProduct(models.Model):
     order = models.ForeignKey('Order', on_delete=models.RESTRICT, related_name='Cats')
     name = models.CharField(max_length=255)
-    image = models.CharField(max_length=255)
+    image = models.CharField(max_length=255, null=True)
     quantity = models.IntegerField(default=1)
     unit_of_measure = models.ForeignKey(UnitOfMeasure, on_delete=models.CASCADE, related_name='cart_products')
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='cart_products')
@@ -257,7 +257,7 @@ class Order(models.Model):
         ('1', 'Not paid'),
         ('2', 'Paid'),
     )
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     address = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=50, choices=status_choices, default='1')
