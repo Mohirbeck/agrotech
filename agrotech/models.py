@@ -123,7 +123,7 @@ class Category(models.Model):
     slug = models.SlugField(max_length=50)
     filter = models.JSONField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    image = models.ImageField(upload_to='categories', null=True)
+    image = models.ImageField(upload_to='categories', null=True, default='categories/default.png')
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     layer = models.IntegerField(default=0)
     is_last = models.BooleanField(default=False)
